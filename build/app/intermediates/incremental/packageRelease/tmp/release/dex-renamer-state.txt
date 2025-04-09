@@ -1,0 +1,4 @@
+#Wed Apr 09 15:58:33 TRT 2025
+base.0=D\:\\hlsPlayer_vscode\\hls_player\\build\\app\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
