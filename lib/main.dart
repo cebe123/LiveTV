@@ -48,6 +48,7 @@ class LiveTVScreen extends StatefulWidget {
 // The state class for the LiveTVScreen widget, managing its dynamic content
 class _LiveTVScreenState extends State<LiveTVScreen> {
   final List<Channel> _defaultChannels = [
+    //url should be https
     Channel(
       name: 'MetroTurk',
       url: 'https://metroturk.castpin.com/hls/metroturk/index.m3u8',
@@ -55,7 +56,7 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
     Channel(
       name: 'BBC Radio 1 (Audio)',
       url:
-          'http://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_one/bbc_radio_one.isml/bbc_radio_one-audio%3d96000.norewind.m3u8',
+          'https://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_one/bbc_radio_one.isml/bbc_radio_one-audio%3d96000.norewind.m3u8',
     ),
   ];
 
