@@ -8,7 +8,7 @@ void main() {
   // Ensure bindings are initialized for InAppWebView platform setup.
   // This is necessary to use platform-specific features of the InAppWebView plugin.
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp()); // Run the main application widget
+  runApp(const MyApp());
 }
 
 class Channel {
@@ -380,13 +380,13 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
           player.width(newWidth);
           player.height(newHeight);
         }
-        
+
         // Call resize function on page load
         resizePlayer();
-        
+
         // Call resize function when window size changes
         window.addEventListener('resize', resizePlayer);
-        
+
         // Handle fullscreen change events
         document.addEventListener('fullscreenchange', resizePlayer);
         document.addEventListener('webkitfullscreenchange', resizePlayer);
