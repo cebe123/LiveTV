@@ -1,5 +1,6 @@
 import 'dart:convert'; // For encoding and decoding JSON data
-import 'package:flutter/foundation.dart'; // For kDebugMode to check if the app is running in debug mode
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -23,7 +24,6 @@ class Channel {
       Channel(name: json['name'], url: json['url']);
 }
 
-// The root widget of the application
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -48,7 +48,6 @@ class LiveTVScreen extends StatefulWidget {
 // The state class for the LiveTVScreen widget, managing its dynamic content
 class _LiveTVScreenState extends State<LiveTVScreen> {
   final List<Channel> _defaultChannels = [
-    //url should be https
     Channel(
       name: 'MetroTurk',
       url: 'https://metroturk.castpin.com/hls/metroturk/index.m3u8',
@@ -168,6 +167,7 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
         );
         setState(() {
           channels.add(newChannel);
+          selectedChannel = newChannel;
           _saveChannels();
           _updateWebViewKey();
         });
@@ -202,7 +202,7 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(), // Close the dialog
+              onPressed: () => Navigator.of(ctx).pop(),
               child: const Text('İptal'),
             ),
             TextButton(
@@ -329,74 +329,74 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
   Widget _buildWebViewPlayer(String url) {
     // HTML content for the video player using Video.js library
     final htmlContent = '''
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-      <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-      <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: black; }
-        /* Ensure the video player fills the container */
-        #player_wrapper { width: 100%; height: 100%; }
-        .video-js { width: 100%; height: 100%; }
-      </style>
-    </head>
-    <body>
-      <div id="player_wrapper">
-        <video id="player" class="video-js vjs-default-skin vjs-big-play-centered" controls autoplay playsinline preload="auto">
-          <source src="$url" type="application/x-mpegURL">
-          Tarayıcınız video etiketini desteklemiyor veya M3U8 oynatılamıyor.
-        </video>
-      </div>
-      <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
-      <script>
-        var player = videojs('player', {
-          autoplay: true,
-          controls: true,
-          responsive: true,
-          html5: {
-            hls: {
-              overrideNative: true
-            },
-            nativeAudioTracks: false,
-            nativeVideoTracks: false
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+        <style>
+          body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: black; }
+          /* Ensure the video player fills the container */
+          #player_wrapper { width: 100%; height: 100%; }
+          .video-js { width: 100%; height: 100%; }
+        </style>
+      </head>
+      <body>
+        <div id="player_wrapper">
+          <video id="player" class="video-js vjs-default-skin vjs-big-play-centered" controls data-setup='{"liveui": true }' autoplay playsinline preload="auto">
+            <source src="$url" type="application/x-mpegURL">
+            Tarayıcınız video etiketini desteklemiyor veya M3U8 oynatılamıyor.
+          </video>
+        </div>
+        <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+        <script>
+        videojs.options.language = 'tr';
+          var player = videojs('player', {
+            autoplay: true,
+            controls: true,
+            responsive: true,
+            html5: {
+              hls: {
+                overrideNative: true
+              },
+              nativeAudioTracks: false,
+              nativeVideoTracks: false
+            }
+          });
+
+          // Error Handling for the video player
+          player.on('error', function() {
+            var error = player.error();
+            console.error('Video.js Error:', error);
+document.getElementById('player_wrapper').innerHTML = '<p style="color: white; text-align: center;">Hata: ${selectedChannel?.name} Yuklenemedi </p>';});
+
+          // Player resizes to fill the window
+          function resizePlayer() {
+            var video = document.getElementById('player');
+            var newWidth = window.innerWidth;
+            var newHeight = window.innerHeight;
+
+            video.style.width = newWidth + 'px';
+            video.style.height = newHeight + 'px';
+            player.width(newWidth);
+            player.height(newHeight);
           }
-        });
 
-        // Error Handling for the video player
-        player.on('error', function() {
-          var error = player.error();
-          console.error('Video.js Error:', error);
-          document.getElementById('player_wrapper').innerHTML = '<p style="color: white; text-align: center;">Video Yüklenemedi: ' + (error ? error.message : 'Bilinmeyen Hata') + '</p>';
-        });
+          // Call resize function on page load
+          resizePlayer();
 
-        // Player resizes to fill the window
-        function resizePlayer() {
-          var video = document.getElementById('player');
-          var newWidth = window.innerWidth;
-          var newHeight = window.innerHeight;
+          // Call resize function when window size changes
+          window.addEventListener('resize', resizePlayer);
 
-          video.style.width = newWidth + 'px';
-          video.style.height = newHeight + 'px';
-          player.width(newWidth);
-          player.height(newHeight);
-        }
-
-        // Call resize function on page load
-        resizePlayer();
-
-        // Call resize function when window size changes
-        window.addEventListener('resize', resizePlayer);
-
-        // Handle fullscreen change events
-        document.addEventListener('fullscreenchange', resizePlayer);
-        document.addEventListener('webkitfullscreenchange', resizePlayer);
-        document.addEventListener('mozfullscreenchange', resizePlayer);
-        document.addEventListener('MSFullscreenChange', resizePlayer);
-      </script>
-    </body>
-    </html>
-    ''';
+          // Handle fullscreen change events
+          document.addEventListener('fullscreenchange', resizePlayer);
+          document.addEventListener('webkitfullscreenchange', resizePlayer);
+          document.addEventListener('mozfullscreenchange', resizePlayer);
+          document.addEventListener('MSFullscreenChange', resizePlayer);
+        </script>
+      </body>
+      </html>
+      ''';
 
     return InAppWebView(
       key: _webViewKey,
@@ -478,54 +478,69 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedChanelText = "Seçili Kanal: ${selectedChannel!.name}";
     return Scaffold(
-      appBar: AppBar(title: const Text('Canlı Yayın (WebView)')),
-      body:
-          _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(),
-              ) // Show a loading indicator while channels are being loaded
-              : LayoutBuilder(
-                builder: (context, constraints) {
-                  // Use LayoutBuilder to adapt the UI based on screen width
-                  final isWide =
-                      constraints.maxWidth >
-                      600; // Determine if the screen is wide enough for a two-column layout
-                  return isWide
-                      ? Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _buildPlayer(),
-                          ), // Player takes 3/4 of the width on wide screens
-                          Expanded(
-                            flex: 1,
-                            child: _buildSidebar(),
-                          ), // Sidebar takes 1/4 of the width on wide screens
-                        ],
-                      )
-                      : Column(
-                        children: [
-                          AspectRatio(
-                            aspectRatio:
-                                16 /
-                                9, // Maintain a 16:9 aspect ratio for the player
-                            child: _buildPlayer(),
-                          ),
-                          Expanded(
-                            child: _buildSidebar(),
-                          ), // Sidebar takes the remaining vertical space on narrow screens
-                        ],
-                      );
-                },
+      body: Column(
+        children: [
+          if (selectedChannel != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      selectedChanelText,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                ),
               ),
+            ),
+          Expanded(
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isWide = constraints.maxWidth > 600;
+                        return isWide
+                            ? Row(
+                              children: [
+                                Expanded(flex: 3, child: _buildPlayer()),
+                                Expanded(flex: 1, child: _buildSidebar()),
+                              ],
+                            )
+                            : Column(
+                              children: [
+                                AspectRatio(
+                                  aspectRatio: 16 / 9,
+                                  child: _buildPlayer(),
+                                ),
+                                Expanded(child: _buildSidebar()),
+                              ],
+                            );
+                      },
+                    ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           FocusScope.of(context).unfocus();
           _showAddDialog(context);
         },
         tooltip: 'Yeni Kanal Ekle',
-        child: const Icon(Icons.add), // Plus icon for the add button
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -547,58 +562,95 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
     );
   }
 
-  // Builds the sidebar containing the list of channels
   Widget _buildSidebar() {
     if (channels.isEmpty) {
-      return const Center(child: Text('Henüz kanal eklenmedi.'));
+      return const Center(
+        child: Text(
+          'Henüz kanal eklenmedi.',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
     }
-
     return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       itemCount: channels.length,
-      padding: const EdgeInsets.all(12),
       itemBuilder: (context, index) {
         final channel = channels[index];
-        return Card(
-          color:
-              channel == selectedChannel
-                  ? Colors.blueGrey[700]
-                  : Colors.grey[850],
-          elevation: 2.0,
-          margin: const EdgeInsets.symmetric(vertical: 4.0),
-          child: ListTile(
-            title: Text(
-              channel.name,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: Colors.amber),
-                  tooltip: 'Kanalı Düzenle',
-                  onPressed: () => _editChannel(channel),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.redAccent,
-                  ),
-                  tooltip: 'Kanalı Sil',
-                  onPressed: () => _removeChannel(channel),
-                ),
-              ],
-            ),
+        final isSelected = channel == selectedChannel;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: InkWell(
             onTap: () {
-              if (selectedChannel != channel) {
+              if (!isSelected) {
                 setState(() {
                   selectedChannel = channel;
                   _updateWebViewKey();
                   if (kDebugMode) {
-                    print("Seçilen Kanal (Android): ${selectedChannel?.name}");
+                    print("Seçilen Kanal: ${selectedChannel?.name}");
                   }
                 });
               }
             },
+            borderRadius: BorderRadius.circular(12),
+            child: Ink(
+              decoration: BoxDecoration(
+                color:
+                    isSelected ? Colors.indigo.shade50 : Colors.grey.shade900,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? Colors.indigo : Colors.grey.shade800,
+                  width: 1.5,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.tv_fill,
+                      size: 24,
+                      color: isSelected ? Colors.indigo : Colors.white70,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        channel.name,
+                        style: TextStyle(
+                          color: isSelected ? Colors.indigo : Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _editChannel(channel);
+                        } else if (value == 'delete') {
+                          _removeChannel(channel);
+                        }
+                      },
+                      itemBuilder:
+                          (BuildContext context) => <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(
+                              value: 'edit',
+                              child: Text('Düzenle'),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'delete',
+                              child: Text(
+                                'Sil',
+                                style: TextStyle(color: Colors.redAccent),
+                              ),
+                            ),
+                          ],
+                      child: const Icon(Icons.more_vert, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -623,8 +675,7 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
               children: [
                 TextField(
                   controller: _nameController,
-                  focusNode:
-                      _nameFocusNode, // Set focus on the name field when the dialog is shown
+                  focusNode: _nameFocusNode,
                   decoration: const InputDecoration(
                     labelText: 'Kanal Adı',
                     hintText: 'Örn: TRT 1',
@@ -637,8 +688,7 @@ class _LiveTVScreenState extends State<LiveTVScreen> {
                     labelText: 'M3U8 Linki',
                     hintText: 'https://.../stream.m3u8',
                   ),
-                  keyboardType:
-                      TextInputType.url, // Set keyboard type for URL input
+                  keyboardType: TextInputType.url,
                 ),
               ],
             ),
