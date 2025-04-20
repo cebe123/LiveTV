@@ -17,8 +17,9 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
-android/.gradle/
+*.idea/
 android/.idea/
+android/.gradle/
 android/local.properties
 
 # VS Code
@@ -27,33 +28,8 @@ android/local.properties
 # Flutter/Dart/Pub related
 .dart_tool/
 .flutter-plugins
-.flutter# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ/Android Studio related
-*.iml
-*.ipr
-*.iws
-.idea/
-android/.gradle/
-android/.idea/
-android/local.properties
-
-# VS Code
-.vscode/
-
-# Flutter/Dart/Pub related
-.dart_tool/
-.flutter-plugins
-.flutter
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/

@@ -22,6 +22,9 @@ class Channel {
 
   factory Channel.fromJson(Map<String, dynamic> json) =>
       Channel(name: json['name'], url: json['url']);
+
+  //daha sonra radyo kanalı, tv kanalı ikonu koymak için ve arkaplan belirleme için.
+  //bool get isRadio => url.toLowerCase().contains(".m3u8") && (name.toLowerCase().contains("radio") || name.toLowerCase().contains("fm"));
 }
 
 class MyApp extends StatelessWidget {
